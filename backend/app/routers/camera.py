@@ -84,7 +84,8 @@ async def get_camera_config(_user: User = Depends(get_current_user)):
 @router.put("/config", response_model=CameraConfig)
 async def update_camera_config(config: CameraConfig, _user: User = Depends(get_current_user)):
     global _camera_config
-    _camera_config = config
+    async with _status_lock:
+        _camera_config = config
     return _camera_config
 
 

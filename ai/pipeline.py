@@ -386,10 +386,10 @@ class InferencePipeline:
                         "confidence": pr["confidence"],
                         "raw_ocr": pr.get("raw_ocr"),
                         "plate_image_path": pr.get("plate_image_path"),
-                        "plate_bbox_x": pr.get("plate_bbox", [0])[0],
-                        "plate_bbox_y": pr["plate_bbox"][1] if pr.get("plate_bbox") else None,
-                        "plate_bbox_w": pr["plate_bbox"][2] if pr.get("plate_bbox") else None,
-                        "plate_bbox_h": pr["plate_bbox"][3] if pr.get("plate_bbox") else None,
+                        "plate_bbox_x": pr["plate_bbox"][0] if pr.get("plate_bbox") and len(pr["plate_bbox"]) > 0 else None,
+                        "plate_bbox_y": pr["plate_bbox"][1] if pr.get("plate_bbox") and len(pr["plate_bbox"]) > 1 else None,
+                        "plate_bbox_w": pr["plate_bbox"][2] if pr.get("plate_bbox") and len(pr["plate_bbox"]) > 2 else None,
+                        "plate_bbox_h": pr["plate_bbox"][3] if pr.get("plate_bbox") and len(pr["plate_bbox"]) > 3 else None,
                     }
                     for pr in result.get("plate_reads", [])
                 ],
@@ -538,13 +538,23 @@ async def main():
             if now - last_process_time < frame_min_interval:
                 continue
 
-            frame_data = json.loads(message["data"])
-            raw = frame_data["frame"]
+            try:
+                frame_data = json.loads(message["data"])
+            except (json.JSONDecodeError, TypeError) as e:
+                logger.warning("Invalid JSON in frame message: %s", e)
+                continue
+            raw = frame_data.get("frame")
+            if not raw:
+                continue
             # Support both base64 (new) and hex (legacy) encoding
             try:
                 frame_bytes = np.frombuffer(base64.b64decode(raw), dtype=np.uint8)
             except Exception:
-                frame_bytes = np.frombuffer(bytes.fromhex(raw), dtype=np.uint8)
+                try:
+                    frame_bytes = np.frombuffer(bytes.fromhex(raw), dtype=np.uint8)
+                except Exception as e:
+                    logger.warning("Failed to decode frame data: %s", e)
+                    continue
             frame = cv2.imdecode(frame_bytes, cv2.IMREAD_COLOR)
 
             if frame is not None:

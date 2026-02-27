@@ -143,8 +143,11 @@ class MapViewModel @Inject constructor(
             _state.update { it.copy(isLoadingRoute = true) }
             try {
                 val resp = apiService.getActiveRoute()
-                if (resp.isSuccessful && resp.body() != null) {
-                    val route = resp.body()!!
+                if (resp.isSuccessful) {
+                    val route = resp.body() ?: run {
+                        _state.update { it.copy(isLoadingRoute = false) }
+                        return@launch
+                    }
                     _state.update { it.copy(activeRoute = route, isLoadingRoute = false) }
                     autoScanController.loadRoute(route)
                 } else {

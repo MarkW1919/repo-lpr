@@ -67,7 +67,9 @@ class HotListViewModel @Inject constructor(
                         )
                     }
                 },
-                onFailure = { }
+                onFailure = { e ->
+                    _state.update { it.copy(error = e.message ?: "Failed to add entry") }
+                }
             )
         }
     }

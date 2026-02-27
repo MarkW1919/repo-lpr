@@ -40,6 +40,7 @@ backup() {
 
     echo "Backup saved to: $BACKUP_FILE"
     echo "Size: $(du -h "$BACKUP_FILE" | cut -f1)"
+    chmod 600 "$BACKUP_FILE"
 }
 
 restore() {

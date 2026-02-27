@@ -193,7 +193,10 @@ class AutoScanController @Inject constructor(
             val resp = apiService.completeStop(routeId, event.stopIndex)
             if (resp.isSuccessful) {
                 val body = resp.body()
-                val nextIndex = (body?.get("next_stop_index") as? Double)?.toInt()
+                val nextIndex = when (val v = body?.get("next_stop_index")) {
+                        is Number -> v.toInt()
+                        else -> null
+                    }
                 if (nextIndex != null) {
                     advanceToStop(nextIndex)
                 } else {
@@ -222,7 +225,10 @@ class AutoScanController @Inject constructor(
                 val resp = apiService.completeStop(routeId, stopIndex)
                 if (resp.isSuccessful) {
                     val body = resp.body()
-                    val nextIndex = (body?.get("next_stop_index") as? Double)?.toInt()
+                    val nextIndex = when (val v = body?.get("next_stop_index")) {
+                        is Number -> v.toInt()
+                        else -> null
+                    }
                     if (nextIndex != null) {
                         advanceToStop(nextIndex)
                     } else {
@@ -241,7 +247,10 @@ class AutoScanController @Inject constructor(
                 val resp = apiService.skipStop(routeId, stopIndex)
                 if (resp.isSuccessful) {
                     val body = resp.body()
-                    val nextIndex = (body?.get("next_stop_index") as? Double)?.toInt()
+                    val nextIndex = when (val v = body?.get("next_stop_index")) {
+                        is Number -> v.toInt()
+                        else -> null
+                    }
                     if (nextIndex != null) {
                         advanceToStop(nextIndex)
                     }

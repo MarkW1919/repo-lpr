@@ -273,14 +273,23 @@ def _apply_confusion_correction(text: str, pattern: re.Pattern | None = None) ->
         # Determine what this position expects
         if pat_str[pat_idx] == "[":
             # Character class — find closing bracket
-            end = pat_str.index("]", pat_idx)
+            try:
+                end = pat_str.index("]", pat_idx)
+            except ValueError:
+                pat_idx += 1
+                pos += 1
+                continue
             char_class = pat_str[pat_idx + 1 : end]
             pat_idx = end + 1
 
             # Check for quantifier
             if pat_idx < len(pat_str) and pat_str[pat_idx] == "{":
-                q_end = pat_str.index("}", pat_idx)
-                pat_idx = q_end + 1
+                try:
+                    q_end = pat_str.index("}", pat_idx)
+                except ValueError:
+                    pass
+                else:
+                    pat_idx = q_end + 1
 
             expects_letter = "A-Z" in char_class and "0-9" not in char_class
             expects_digit = "0-9" in char_class and "A-Z" not in char_class
@@ -466,6 +475,8 @@ class PlateOCR:
 
         blob = self.preprocess(plate_img)
         outputs = self.engine.infer(blob)
+        if not outputs or outputs[0] is None:
+            return None
         raw_text, avg_conf, char_confs = self.ctc_decode(outputs[0])
 
         # Deterministic formatting: uppercase, strip whitespace

@@ -207,8 +207,12 @@ async def delete_route(
     user: User = Depends(get_current_user),
 ):
     route = await _get_route_or_404(route_id, user.id, db)
-    await db.delete(route)
-    await db.commit()
+    try:
+        await db.delete(route)
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete route")
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

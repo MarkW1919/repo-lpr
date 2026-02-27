@@ -42,8 +42,10 @@ async def get_system_stats(_user: User = Depends(require_admin)):
     # Jetson GPU temp
     try:
         with open("/sys/devices/virtual/thermal/thermal_zone0/temp") as f:
-            stats.gpu_temp_c = int(f.read().strip()) / 1000.0
-    except (FileNotFoundError, ValueError):
-        pass  # Expected on non-Jetson hardware
+            temp_raw = f.read().strip()
+            if temp_raw:
+                stats.gpu_temp_c = int(temp_raw) / 1000.0
+    except Exception:
+        logger.debug("Could not read GPU temperature")
 
     return stats

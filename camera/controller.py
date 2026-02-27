@@ -201,7 +201,10 @@ async def main():
                 frame = ts_frame.frame
 
                 # Encode frame for Redis transport (base64 = 33% smaller than hex)
-                _, buffer = cv2.imencode(".jpg", frame, jpeg_params)
+                success, buffer = cv2.imencode(".jpg", frame, jpeg_params)
+                if not success or buffer is None:
+                    logger.warning("JPEG encoding failed, skipping frame")
+                    continue
                 frame_b64 = base64.b64encode(buffer.tobytes()).decode("ascii")
 
                 frame_data = json.dumps(
@@ -214,17 +217,23 @@ async def main():
                     }
                 )
 
-                await redis_client.publish("reposcan:frames", frame_data)
+                try:
+                    await redis_client.publish("reposcan:frames", frame_data)
+                except Exception as e:
+                    logger.warning("Failed to publish frame: %s", e)
                 frames_sent += 1
 
             # Publish status periodically
             now = time.time()
             if now - last_status > status_interval:
                 status = controller.get_status()
-                await redis_client.publish(
-                    "reposcan:alerts",
-                    json.dumps({"type": "system:camera", "data": status}),
-                )
+                try:
+                    await redis_client.publish(
+                        "reposcan:alerts",
+                        json.dumps({"type": "system:camera", "data": status}),
+                    )
+                except Exception as e:
+                    logger.warning("Failed to publish status: %s", e)
                 last_status = now
 
             # Log throughput periodically
@@ -250,7 +259,10 @@ async def main():
         pass
     finally:
         controller.stop()
-        await redis_client.close()
+        try:
+            await asyncio.wait_for(redis_client.close(), timeout=2)
+        except (asyncio.TimeoutError, Exception):
+            logger.warning("Redis close timed out or failed")
 
 
 if __name__ == "__main__":

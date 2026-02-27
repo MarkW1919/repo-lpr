@@ -93,7 +93,10 @@ class RTSPServer:
             except subprocess.TimeoutExpired:
                 logger.warning("RTSP server did not terminate, killing")
                 self._process.kill()
-                self._process.wait(timeout=2)
+                try:
+                    self._process.wait(timeout=2)
+                except (subprocess.TimeoutExpired, OSError):
+                    logger.debug("RTSP process already reaped")
             self._process = None
         self._running = False
         logger.info("RTSP server stopped")

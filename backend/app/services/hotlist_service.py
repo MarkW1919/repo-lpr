@@ -230,9 +230,12 @@ async def delete_entry(db: AsyncSession, entry_id: uuid.UUID) -> bool:
 
     plate = entry.plate_text
     await db.delete(entry)
-    await db.flush()
-
-    # Remove from cache
+    try:
+        await db.flush()
+    except Exception:
+        logger.error("Failed to flush hotlist entry delete for %s", entry_id)
+        raise
+    # Remove from cache only after successful flush
     await hotlist_cache.remove_plate(plate)
     return True
 

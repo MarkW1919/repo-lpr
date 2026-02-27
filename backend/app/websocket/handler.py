@@ -120,7 +120,8 @@ async def redis_listener() -> None:
                 if message["type"] == "message":
                     try:
                         data = json.loads(message["data"])
-                    except (json.JSONDecodeError, TypeError):
+                    except (json.JSONDecodeError, TypeError) as e:
+                        logger.warning("Malformed alert message: %s", e)
                         continue
                     # Fire-and-forget broadcast — don't let broadcast errors kill the listener
                     try:
@@ -140,15 +141,16 @@ async def redis_listener() -> None:
 
 async def websocket_endpoint(websocket: WebSocket, token: str | None = None) -> None:
     """WebSocket endpoint for real-time alerts and detection feed."""
-    # Authenticate via token query param
-    client_id = "anonymous"
-    if token:
-        payload = decode_token(token)
-        if payload and payload.get("type") == "access" and payload.get("sub"):
-            client_id = payload["sub"]
-        else:
-            await websocket.close(code=4001, reason="Invalid token")
-            return
+    # Authenticate via token query param — anonymous connections are rejected
+    if not token:
+        await websocket.close(code=4001, reason="Token required")
+        return
+
+    payload = decode_token(token)
+    if not payload or payload.get("type") != "access" or not payload.get("sub"):
+        await websocket.close(code=4001, reason="Invalid token")
+        return
+    client_id = payload["sub"]
 
     conn_id = await manager.connect(websocket, client_id)
     try:
