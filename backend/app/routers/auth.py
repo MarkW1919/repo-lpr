@@ -79,7 +79,7 @@ async def refresh_token(data: TokenRefresh, db: AsyncSession = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token subject",
-        )
+        ) from None
 
     user = await get_user_by_id(db, user_id)
     if not user or not user.is_active:

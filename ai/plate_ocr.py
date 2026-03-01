@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 
 from ai.tensorrt_utils import TRTEngine
-from ai.utils import compute_iou, softmax
+from ai.utils import compute_iou
 
 logger = logging.getLogger(__name__)
 

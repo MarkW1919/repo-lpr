@@ -261,7 +261,7 @@ async def main():
         controller.stop()
         try:
             await asyncio.wait_for(redis_client.close(), timeout=2)
-        except (asyncio.TimeoutError, Exception):
+        except (TimeoutError, Exception):
             logger.warning("Redis close timed out or failed")
 
 

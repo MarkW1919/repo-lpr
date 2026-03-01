@@ -212,7 +212,7 @@ async def delete_route(
         await db.commit()
     except Exception:
         await db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to delete route")
+        raise HTTPException(status_code=500, detail="Failed to delete route") from None
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -222,7 +222,7 @@ async def _get_route_or_404(route_id: str, agent_id: uuid.UUID, db: AsyncSession
     try:
         parsed_id = uuid.UUID(route_id)
     except ValueError:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid route ID format")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid route ID format") from None
 
     stmt = (
         select(Route)
