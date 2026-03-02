@@ -1,6 +1,6 @@
 # RepoScan Pro — Build Status & Completion Report
 
-> **Updated:** 2026-03-01
+> **Updated:** 2026-03-02
 > **Version:** 1.0.0
 > **Branch:** `main`
 
@@ -25,6 +25,7 @@
 | Integration tests      | PASS   | 6 test files covering auth, detections, health, hotlist, WebSocket |
 | Deployment pipeline    | PASS   | GitHub Actions deploy.yml with GHCR push + release creation |
 | SSL documentation      | PASS   | Certificate generation script + setup guide   |
+| Dependency pinning     | PASS   | All npm, pip, Docker, and CI action versions locked |
 
 ---
 
@@ -166,6 +167,13 @@
 - Concurrency controls prevent overlapping deployments
 - Docker layer caching via GitHub Actions cache
 
+### 12. Dependency Pinning for Production — DONE
+- **Frontend:** All 29 npm dependencies pinned to exact versions (removed `^` and `~` ranges)
+- **Python:** All 4 requirements files confirmed fully pinned with `==` operators
+- **Docker images:** Redis 7.4-alpine, Nginx 1.27-alpine, Prometheus v3.2.1, Grafana 11.5.2
+- **GitHub Actions:** All action references pinned to immutable SHA digests with version comments
+- **CI/CD consistency:** Ruff version aligned between `ci.yml` and `requirements-dev.txt` (0.8.4)
+
 ---
 
 ## Remaining for Production Deployment
@@ -182,18 +190,21 @@ The following items require external action or target hardware and cannot be com
 
 ## Environment Information
 
-| Component       | Version     |
-|-----------------|-------------|
-| Node.js         | v22.22.0    |
-| npm             | 10.9.4      |
-| TypeScript      | ~5.5.3      |
-| Vite            | ^7.3.1      |
-| React           | ^18.3.1     |
-| ESLint          | ^9.39.2     |
-| Python (target) | 3.12        |
-| PostgreSQL      | 16 + PostGIS|
-| Redis           | 7-alpine    |
-| Docker target   | Jetson L4T  |
+| Component       | Version          |
+|-----------------|------------------|
+| Node.js         | v22.22.0         |
+| npm             | 10.9.4           |
+| TypeScript      | 5.5.4 (pinned)   |
+| Vite            | 7.3.1 (pinned)   |
+| React           | 18.3.1 (pinned)  |
+| ESLint          | 9.39.2 (pinned)  |
+| Python (target) | 3.12             |
+| PostgreSQL      | 16 + PostGIS 3.4 |
+| Redis           | 7.4-alpine       |
+| Nginx           | 1.27-alpine      |
+| Prometheus      | v3.2.1           |
+| Grafana         | 11.5.2           |
+| Docker target   | Jetson L4T r36.2 |
 
 ---
 
